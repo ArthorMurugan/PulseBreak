@@ -1,18 +1,48 @@
-name: Build Debug APK
+name: Build Debug APK & Auto Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get next version
+        id: version
+        run: |
+          # Get latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          
+          # Extract version numbers
+          VERSION_NUM=${LATEST_TAG#v}
+          MAJOR=$(echo $VERSION_NUM | cut -d. -f1)
+          MINOR=$(echo $VERSION_NUM | cut -d. -f2)
+          PATCH=$(echo $VERSION_NUM | cut -d. -f3)
+          
+          # Increment patch version
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists on current commit
+        id: check_tag
+        run: |
+          if git describe --exact-match --tags HEAD 2>/dev/null; then
+            echo "Tag already exists on this commit"
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "No tag on current commit"
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -29,20 +59,43 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
+      - name: Extract APK from build outputs
+        run: |
+          mkdir -p release-apks
+          find app/build/outputs -name "*.apk" -type f -exec cp {} release-apks/ \;
+          ls -la release-apks/
+
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
           name: debug-apks
-          path: app/build/outputs/apk/debug/
+          path: release-apks/
+
+      - name: Create git tag
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.new_version }}
+          git push origin ${{ steps.version.outputs.new_version }}
 
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.check_tag.outputs.tag_exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
+          tag_name: ${{ steps.version.outputs.new_version }}
+          files: release-apks/*.apk
           body: |
-            ## PulseBreak Debug Build
-            Debug APK for testing
+            ## PulseBreak ${{ steps.version.outputs.new_version }}
+            
+            ### Release Files
+            - Debug APK for testing on Android devices
+            
+            **Installation:** 
+            Download the .apk file and install on your Android device
+            
+            Auto-generated release
           draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
