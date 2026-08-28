@@ -1,5 +1,5 @@
 {
-  "name": "PulseBreak",
+  "name": "pulsebreak",
   "description": "Minimal, modern, offline-first interval workout timer and wellness reminder utility.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

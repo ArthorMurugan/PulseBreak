@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "PulseBreak"
+rootProject.name = "pulsebreak"
 
 include(":app")

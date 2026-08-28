@@ -142,7 +142,7 @@ fun HomeScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pulsebreak_logo),
-                            contentDescription = "PulseBreak Logo",
+                            contentDescription = "pulsebreak Logo",
                             modifier = Modifier.fillMaxSize(),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )

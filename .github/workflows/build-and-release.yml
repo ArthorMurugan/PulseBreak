@@ -97,7 +97,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.new_version }}
           files: release-apks/universal.apk
           body: |
-            ## PulseBreak ${{ steps.version.outputs.new_version }}
+            ## pulsebreak ${{ steps.version.outputs.new_version }}
             
             ### Release Files
             - **universal.apk** - Universal APK for all Android architectures
