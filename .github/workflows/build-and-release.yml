@@ -35,6 +35,7 @@ jobs:
           
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists on current commit
         id: check_tag
@@ -90,22 +91,35 @@ jobs:
           git tag ${{ steps.version.outputs.new_version }}
           git push origin ${{ steps.version.outputs.new_version }}
 
+      - name: Generate release notes
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          {
+            echo "## pulsebreak ${{ steps.version.outputs.new_version }}"
+            echo
+            echo "### Progress"
+            if [ "${{ steps.version.outputs.previous_tag }}" = "v0.0.0" ] && ! git rev-parse "${{ steps.version.outputs.previous_tag }}" >/dev/null 2>&1; then
+              git log --pretty=format:'- %s' "${{ steps.version.outputs.new_version }}"
+            else
+              git log --pretty=format:'- %s' "${{ steps.version.outputs.previous_tag }}..${{ steps.version.outputs.new_version }}"
+            fi
+            echo
+            echo
+            echo "### Release Files"
+            echo "- **universal.apk** - Universal APK for all Android architectures"
+            echo
+            echo "**Installation:** Download the universal.apk file and install on your Android device"
+            echo
+            echo "Auto-generated release"
+          } > release-notes.md
+
       - name: Create Release with universal.apk
         if: steps.check_tag.outputs.tag_exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_version }}
           files: release-apks/universal.apk
-          body: |
-            ## pulsebreak ${{ steps.version.outputs.new_version }}
-            
-            ### Release Files
-            - **universal.apk** - Universal APK for all Android architectures
-            
-            **Installation:** 
-            Download the universal.apk file and install on your Android device
-            
-            Auto-generated release
+          body_path: release-notes.md
           draft: false
           prerelease: false
         env:
