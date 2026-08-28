@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -85,8 +84,8 @@ fun AppNavigation(
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
-                    containerColor = Color(0xFF1C1B1F),
-                    tonalElevation = 0.dp,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
                     modifier = Modifier.testTag("bottom_navigation_bar")
                 ) {
                     bottomNavItems.forEach { screen ->
@@ -110,11 +109,11 @@ fun AppNavigation(
                             },
                             selected = isSelected,
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color(0xFF1D192B),
-                                selectedTextColor = Color(0xFFE8DEF8),
-                                indicatorColor = Color(0xFFE8DEF8),
-                                unselectedIconColor = Color(0xFFCAC4D0).copy(alpha = 0.7f),
-                                unselectedTextColor = Color(0xFFCAC4D0).copy(alpha = 0.7f)
+                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             onClick = {
                                 navController.navigate(screen.route) {

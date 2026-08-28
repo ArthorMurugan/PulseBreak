@@ -34,19 +34,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.CircularProgressRing
-import com.example.ui.theme.BoldDeepPurple
-import com.example.ui.theme.BoldPrimary
-import com.example.ui.theme.BoldPrimaryVariant
-import com.example.ui.theme.DarkBackground
-import com.example.ui.theme.DarkSurfaceVariant
-import com.example.ui.theme.DarkTextSecondary
 import java.util.Locale
 
 @Composable
@@ -62,7 +55,7 @@ fun HomeScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(DarkBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp)
             .testTag("home_screen"),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -81,7 +74,7 @@ fun HomeScreen(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
                     ),
-                    color = DarkTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -90,12 +83,12 @@ fun HomeScreen(
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (-1.0).sp
                     ),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
 
-        // Main Hero Workout Card in signature #D0BCFF Lilac & Deep Violet #381E72
+        // Main Hero Workout Card in signature Dynamic Color
         item {
             val isActive = uiState.activeWorkoutState.isRunning
             val ringProgress = if (isActive) {
@@ -114,7 +107,7 @@ fun HomeScreen(
                     .testTag("main_workout_card"),
                 shape = RoundedCornerShape(32.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = BoldPrimary
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
@@ -136,27 +129,27 @@ fun HomeScreen(
                                 letterSpacing = 3.sp,
                                 fontWeight = FontWeight.Black
                             ),
-                            color = BoldDeepPurple
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
 
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(BoldDeepPurple)
+                                .background(MaterialTheme.colorScheme.onPrimaryContainer)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Circular Progress Graphic in High Contrast Deep Violet
+                    // Circular Progress Graphic in High Contrast Primary Container color
                     CircularProgressRing(
                         progress = ringProgress,
                         size = 140.dp,
                         strokeWidth = 10.dp,
-                        primaryColor = BoldDeepPurple,
-                        secondaryColor = BoldDeepPurple,
-                        trackColor = BoldDeepPurple.copy(alpha = 0.15f)
+                        primaryColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        secondaryColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -171,14 +164,14 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontWeight = FontWeight.Black
                                     ),
-                                    color = BoldDeepPurple
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
                                     text = "R${state.currentRound}/${state.totalRounds}",
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
-                                    color = BoldDeepPurple.copy(alpha = 0.8f)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                 )
                             } else {
                                 Text(
@@ -186,7 +179,7 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontWeight = FontWeight.Black
                                     ),
-                                    color = BoldDeepPurple
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
@@ -199,12 +192,12 @@ fun HomeScreen(
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        color = BoldDeepPurple
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Prominent Action Button: Dark Deep Violet with Lilac Text
+                    // Prominent Action Button: OnPrimaryContainer with PrimaryContainer Text
                     Button(
                         onClick = {
                             if (isActive) {
@@ -220,8 +213,8 @@ fun HomeScreen(
                             .testTag("start_workout_button"),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BoldDeepPurple,
-                            contentColor = BoldPrimary
+                            containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            contentColor = MaterialTheme.colorScheme.primaryContainer
                         )
                     ) {
                         Row(
@@ -231,7 +224,7 @@ fun HomeScreen(
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                tint = BoldPrimary,
+                                tint = MaterialTheme.colorScheme.primaryContainer,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -248,7 +241,7 @@ fun HomeScreen(
             }
         }
 
-        // 3-Column Quick Stat Badges from Design Theme
+        // 3-Column Quick Stat Badges
         item {
             val workoutMins = uiState.dailyTracker.workoutMinutes
             val waterCount = uiState.dailyTracker.waterDrankCount
@@ -267,7 +260,7 @@ fun HomeScreen(
                         .clickable(onClick = onNavigateToWorkout)
                         .testTag("stat_card_workout"),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2930))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(
                         modifier = Modifier
@@ -283,7 +276,7 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
                             ),
-                            color = DarkTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
@@ -292,14 +285,14 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Black
                                 ),
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "m",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = BoldPrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
                             )
                         }
@@ -314,7 +307,7 @@ fun HomeScreen(
                         .clickable { viewModel.quickAddWater() }
                         .testTag("stat_card_water"),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2930))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(
                         modifier = Modifier
@@ -330,7 +323,7 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
                             ),
-                            color = DarkTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
@@ -339,14 +332,14 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Black
                                 ),
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "/$waterTarget",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = DarkTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 2.dp, start = 1.dp)
                             )
                         }
@@ -361,7 +354,7 @@ fun HomeScreen(
                         .clickable { viewModel.quickAddMoveBreak() }
                         .testTag("stat_card_move"),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2930))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(
                         modifier = Modifier
@@ -377,7 +370,7 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
                             ),
-                            color = DarkTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
@@ -386,14 +379,14 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Black
                                 ),
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "br",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = BoldPrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
                             )
                         }
@@ -402,7 +395,7 @@ fun HomeScreen(
             }
         }
 
-        // Next Reminder Card in container #4A4458
+        // Next Reminder Card in container secondaryContainer
         item {
             val nextRem = uiState.nextReminder
             Card(
@@ -413,9 +406,9 @@ fun HomeScreen(
                     .testTag("next_reminder_card"),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = DarkSurfaceVariant
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f))
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
             ) {
                 Row(
                     modifier = Modifier
@@ -432,7 +425,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(BoldPrimary),
+                                .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -442,7 +435,7 @@ fun HomeScreen(
                                     else -> Icons.Default.NotificationsActive
                                 },
                                 contentDescription = null,
-                                tint = BoldDeepPurple,
+                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -455,13 +448,13 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = if (nextRem != null) "${nextRem.minutesAway} min remaining" else "Next reminder scheduled",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = BoldPrimaryVariant
+                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -469,7 +462,7 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White.copy(alpha = 0.08f))
+                            .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.08f))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
@@ -478,7 +471,7 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 2.sp
                             ),
-                            color = BoldPrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

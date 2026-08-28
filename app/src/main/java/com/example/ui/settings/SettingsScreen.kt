@@ -46,8 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.NumberStepper
-import com.example.ui.theme.PulseGreenPrimary
-import com.example.ui.theme.RestCoralPrimary
 import com.example.ui.theme.WaterBluePrimary
 
 @Composable
@@ -77,8 +75,8 @@ fun SettingsScreen(
                         showResetDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RestCoralPrimary,
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
                     Text("Clear Everything")
@@ -155,7 +153,7 @@ fun SettingsScreen(
                 step = 1,
                 minValue = 1,
                 maxValue = 20,
-                accentColor = PulseGreenPrimary,
+                accentColor = MaterialTheme.colorScheme.primary,
                 onValueChange = { target ->
                     viewModel.updateSettings { it.copy(moveDailyTarget = target) }
                 }
@@ -202,7 +200,7 @@ fun SettingsScreen(
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = PulseGreenPrimary
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -224,7 +222,7 @@ fun SettingsScreen(
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = PulseGreenPrimary
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -263,13 +261,13 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(PulseGreenPrimary.copy(alpha = 0.15f)),
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Shield,
                                 contentDescription = null,
-                                tint = PulseGreenPrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -296,8 +294,8 @@ fun SettingsScreen(
                             .testTag("reset_all_data_button"),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = RestCoralPrimary.copy(alpha = 0.15f),
-                            contentColor = RestCoralPrimary
+                            containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                            contentColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
                         Icon(

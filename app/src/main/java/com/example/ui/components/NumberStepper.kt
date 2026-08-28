@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun NumberStepper(
+    modifier: Modifier = Modifier,
     label: String,
     value: Int,
     unit: String = "",
@@ -39,8 +40,7 @@ fun NumberStepper(
     minValue: Int = 5,
     maxValue: Int = 300,
     accentColor: Color = MaterialTheme.colorScheme.primary,
-    onValueChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    onValueChange: (Int) -> Unit
 ) {
     Box(
         modifier = modifier

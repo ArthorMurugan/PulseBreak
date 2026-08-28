@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.ReminderConfig
-import com.example.ui.theme.PulseGreenPrimary
 import java.util.Locale
 
 @Composable
@@ -86,7 +85,7 @@ fun ReminderEditDialog(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (isSel) PulseGreenPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
+                                        if (isSel) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
                                     )
                                     .clickable { interval = mins }
                                     .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -96,7 +95,7 @@ fun ReminderEditDialog(
                                     style = MaterialTheme.typography.labelLarge.copy(
                                         fontWeight = if (isSel) FontWeight.Bold else FontWeight.Medium
                                     ),
-                                    color = if (isSel) PulseGreenPrimary else MaterialTheme.colorScheme.onSurface
+                                    color = if (isSel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -158,7 +157,7 @@ fun ReminderEditDialog(
                         onCheckedChange = { soundEnabled = it },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = PulseGreenPrimary
+                            checkedTrackColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -178,7 +177,7 @@ fun ReminderEditDialog(
                         onCheckedChange = { vibrationEnabled = it },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = PulseGreenPrimary
+                            checkedTrackColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -192,8 +191,8 @@ fun ReminderEditDialog(
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PulseGreenPrimary,
-                    contentColor = Color(0xFF090D14)
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Text("Save", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))

@@ -55,7 +55,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun PulseBreakTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // Keep consistent athletic brand styling
+    dynamicColor: Boolean = true, // Use Android dynamic accent theme by default
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

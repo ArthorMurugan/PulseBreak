@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,11 +44,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.WorkoutPhase
 import com.example.ui.components.CircularProgressRing
-import com.example.ui.theme.DarkBackground
-import com.example.ui.theme.PulseGreenLight
-import com.example.ui.theme.PulseGreenPrimary
-import com.example.ui.theme.RestCoralLight
-import com.example.ui.theme.RestCoralPrimary
 import java.util.Locale
 
 @Composable
@@ -65,17 +59,17 @@ fun ActiveWorkoutScreen(
     val isFinished = state.phase == WorkoutPhase.FINISHED
 
     val accentPrimary = when {
-        isWork -> PulseGreenPrimary
-        isRest -> RestCoralPrimary
-        isFinished -> PulseGreenPrimary
-        else -> PulseGreenPrimary
+        isWork -> MaterialTheme.colorScheme.primary
+        isRest -> MaterialTheme.colorScheme.secondary
+        isFinished -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.primary
     }
 
     val accentLight = when {
-        isWork -> PulseGreenLight
-        isRest -> RestCoralLight
-        isFinished -> PulseGreenLight
-        else -> PulseGreenLight
+        isWork -> MaterialTheme.colorScheme.primaryContainer
+        isRest -> MaterialTheme.colorScheme.secondaryContainer
+        isFinished -> MaterialTheme.colorScheme.tertiaryContainer
+        else -> MaterialTheme.colorScheme.primaryContainer
     }
 
     val phaseText = when (state.phase) {
@@ -93,7 +87,7 @@ fun ActiveWorkoutScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(DarkBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
             .testTag("active_workout_screen")
     ) {
@@ -110,13 +104,13 @@ fun ActiveWorkoutScreen(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF1E293B))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .testTag("close_active_workout_button")
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close View",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -128,7 +122,7 @@ fun ActiveWorkoutScreen(
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp
                 ),
-                color = Color(0xFF94A3B8)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -145,13 +139,13 @@ fun ActiveWorkoutScreen(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(PulseGreenPrimary.copy(alpha = 0.2f)),
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Workout Completed",
-                        tint = PulseGreenPrimary,
+                        tint = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.size(64.dp)
                     )
                 }
@@ -164,7 +158,7 @@ fun ActiveWorkoutScreen(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     ),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -172,7 +166,7 @@ fun ActiveWorkoutScreen(
                 Text(
                     text = "All ${state.totalRounds} rounds finished in ${state.totalElapsedSeconds / 60}m ${state.totalElapsedSeconds % 60}s",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF94A3B8)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(36.dp))
@@ -188,8 +182,8 @@ fun ActiveWorkoutScreen(
                         .testTag("finish_done_button"),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PulseGreenPrimary,
-                        contentColor = DarkBackground
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
                     )
                 ) {
                     Text(
@@ -216,7 +210,7 @@ fun ActiveWorkoutScreen(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
                     ),
-                    color = Color(0xFF94A3B8)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -248,19 +242,19 @@ fun ActiveWorkoutScreen(
                     strokeWidth = 16.dp,
                     primaryColor = accentPrimary,
                     secondaryColor = accentLight,
-                    trackColor = Color(0xFF1E293B)
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
-                    ) {
+                        ) {
                         Text(
                             text = timeFormatted,
                             style = MaterialTheme.typography.displayLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = (-1).sp
                             ),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onBackground
                         )
 
                         AnimatedVisibility(
@@ -274,7 +268,7 @@ fun ActiveWorkoutScreen(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 2.sp
                                 ),
-                                color = RestCoralPrimary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
@@ -297,8 +291,8 @@ fun ActiveWorkoutScreen(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFF161E2E))
-                        .border(1.dp, Color(0xFF283548), RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Row(
@@ -311,19 +305,19 @@ fun ActiveWorkoutScreen(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
                             ),
-                            color = Color(0xFF94A3B8)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "·",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF94A3B8)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "$nextPhaseName · $nextTimeFormatted",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.SemiBold
                             ),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -349,10 +343,10 @@ fun ActiveWorkoutScreen(
                             .testTag("workout_reset_button"),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(0xFF94A3B8)
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFF334155))
+                            brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
                         )
                     ) {
                         Icon(
@@ -381,8 +375,8 @@ fun ActiveWorkoutScreen(
                             .testTag("workout_pause_resume_button"),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (state.isPaused) PulseGreenPrimary else Color(0xFF1E293B),
-                            contentColor = if (state.isPaused) DarkBackground else Color.White
+                            containerColor = if (state.isPaused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (state.isPaused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
                         Icon(
@@ -413,8 +407,8 @@ fun ActiveWorkoutScreen(
                         .testTag("workout_end_button"),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RestCoralPrimary.copy(alpha = 0.15f),
-                        contentColor = RestCoralPrimary
+                        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                        contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
                     Icon(

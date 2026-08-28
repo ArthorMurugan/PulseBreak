@@ -21,12 +21,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Vibration
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -50,8 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.WorkoutConfig
 import com.example.ui.components.NumberStepper
-import com.example.ui.theme.PulseGreenPrimary
-import com.example.ui.theme.RestCoralPrimary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -168,7 +166,7 @@ fun WorkoutSetupScreen(
                     step = 5,
                     minValue = 5,
                     maxValue = 300,
-                    accentColor = PulseGreenPrimary,
+                    accentColor = MaterialTheme.colorScheme.primary,
                     onValueChange = { viewModel.updateWorkDuration(it) }
                 )
 
@@ -179,7 +177,7 @@ fun WorkoutSetupScreen(
                     step = 5,
                     minValue = 0,
                     maxValue = 180,
-                    accentColor = RestCoralPrimary,
+                    accentColor = MaterialTheme.colorScheme.secondary,
                     onValueChange = { viewModel.updateRestDuration(it) }
                 )
 
@@ -190,7 +188,7 @@ fun WorkoutSetupScreen(
                     step = 1,
                     minValue = 1,
                     maxValue = 50,
-                    accentColor = PulseGreenPrimary,
+                    accentColor = MaterialTheme.colorScheme.primary,
                     onValueChange = { viewModel.updateTotalRounds(it) }
                 )
             }
@@ -231,9 +229,9 @@ fun WorkoutSetupScreen(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.VolumeUp,
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = null,
-                                tint = PulseGreenPrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -255,7 +253,7 @@ fun WorkoutSetupScreen(
                             onCheckedChange = { viewModel.toggleBeepSound(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = PulseGreenPrimary
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
                             ),
                             modifier = Modifier.testTag("switch_beep_sound")
                         )
@@ -271,7 +269,7 @@ fun WorkoutSetupScreen(
                             Icon(
                                 imageVector = Icons.Default.Vibration,
                                 contentDescription = null,
-                                tint = PulseGreenPrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -293,7 +291,7 @@ fun WorkoutSetupScreen(
                             onCheckedChange = { viewModel.toggleVibration(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = PulseGreenPrimary
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
                             ),
                             modifier = Modifier.testTag("switch_vibration")
                         )
@@ -309,7 +307,7 @@ fun WorkoutSetupScreen(
                             Icon(
                                 imageVector = Icons.Default.GraphicEq,
                                 contentDescription = null,
-                                tint = PulseGreenPrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -331,7 +329,7 @@ fun WorkoutSetupScreen(
                             onCheckedChange = { viewModel.toggleCountdownSound(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = PulseGreenPrimary
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
                             ),
                             modifier = Modifier.testTag("switch_countdown_sound")
                         )
@@ -358,8 +356,8 @@ fun WorkoutSetupScreen(
                     .testTag("start_workout_action_button"),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PulseGreenPrimary,
-                    contentColor = Color(0xFF090D14)
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Row(
@@ -448,13 +446,13 @@ fun WorkoutSetupScreen(
                                 modifier = Modifier
                                     .size(38.dp)
                                     .clip(CircleShape)
-                                    .background(PulseGreenPrimary.copy(alpha = 0.15f)),
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.FitnessCenter,
                                     contentDescription = null,
-                                    tint = PulseGreenPrimary,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -507,11 +505,11 @@ private fun PresetChip(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(
-                if (isSelected) PulseGreenPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface
+                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface
             )
             .border(
                 width = if (isSelected) 1.5.dp else 1.dp,
-                color = if (isSelected) PulseGreenPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable(onClick = onClick)
@@ -523,7 +521,7 @@ private fun PresetChip(
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = if (isSelected) PulseGreenPrimary else MaterialTheme.colorScheme.onSurface
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(

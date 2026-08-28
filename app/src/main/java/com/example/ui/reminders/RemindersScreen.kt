@@ -50,7 +50,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.ReminderConfig
 import com.example.domain.model.ReminderType
 import com.example.ui.theme.MoveAmberPrimary
-import com.example.ui.theme.PulseGreenPrimary
 import com.example.ui.theme.WaterBluePrimary
 import java.util.Locale
 
@@ -293,7 +292,7 @@ fun RemindersScreen(
             val accentColor = when (reminder.type) {
                 ReminderType.WATER -> WaterBluePrimary
                 ReminderType.STAND_MOVE -> MoveAmberPrimary
-                ReminderType.STRETCH -> PulseGreenPrimary
+                ReminderType.STRETCH -> MaterialTheme.colorScheme.primary
             }
 
             val intervalText = if (reminder.intervalMinutes >= 60) {
