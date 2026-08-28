@@ -56,6 +56,14 @@ class WorkoutForegroundService : Service() {
                 val sound = intent.getBooleanExtra(EXTRA_SOUND, true)
                 val vibration = intent.getBooleanExtra(EXTRA_VIBRATION, true)
                 val warning = intent.getIntExtra(EXTRA_WARNING, 3)
+                val plannedJson = intent.getStringExtra(EXTRA_PLANNED_JSON)
+
+                var plannedList = emptyList<com.example.domain.model.PlannedExercise>()
+                if (plannedJson != null) {
+                    val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+                    val type = com.squareup.moshi.Types.newParameterizedType(List::class.java, com.example.domain.model.PlannedExercise::class.java)
+                    plannedList = moshi.adapter<List<com.example.domain.model.PlannedExercise>>(type).fromJson(plannedJson) ?: emptyList()
+                }
 
                 val config = WorkoutConfig(
                     id = "active_session",
@@ -66,7 +74,8 @@ class WorkoutForegroundService : Service() {
                     countdownSound = sound,
                     beepSound = sound,
                     vibrationEnabled = vibration,
-                    countdownWarningSec = warning
+                    countdownWarningSec = warning,
+                    plannedExercises = plannedList
                 )
 
                 startWorkoutSession(config)
@@ -173,6 +182,8 @@ class WorkoutForegroundService : Service() {
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
+        engine?.release()
+        engine = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -191,6 +202,7 @@ class WorkoutForegroundService : Service() {
         const val EXTRA_SOUND = "extra_sound"
         const val EXTRA_VIBRATION = "extra_vibration"
         const val EXTRA_WARNING = "extra_warning"
+        const val EXTRA_PLANNED_JSON = "extra_planned_json"
 
         private var instance: WorkoutForegroundService? = null
         private var engine: WorkoutTimerEngine? = null
@@ -208,6 +220,13 @@ class WorkoutForegroundService : Service() {
                 putExtra(EXTRA_SOUND, config.beepSound)
                 putExtra(EXTRA_VIBRATION, config.vibrationEnabled)
                 putExtra(EXTRA_WARNING, config.countdownWarningSec)
+                
+                if (config.plannedExercises.isNotEmpty()) {
+                    val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+                    val type = com.squareup.moshi.Types.newParameterizedType(List::class.java, com.example.domain.model.PlannedExercise::class.java)
+                    val json = moshi.adapter<List<com.example.domain.model.PlannedExercise>>(type).toJson(config.plannedExercises)
+                    putExtra(EXTRA_PLANNED_JSON, json)
+                }
             }
             ContextCompat.startForegroundService(context, intent)
         }

@@ -9,12 +9,14 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.speech.tts.TextToSpeech
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Locale
 import kotlin.math.sin
 
-class AudioHapticFeedback(private val context: Context) {
+class AudioHapticFeedback(private val context: Context) : TextToSpeech.OnInitListener {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -25,7 +27,29 @@ class AudioHapticFeedback(private val context: Context) {
         context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     }
 
+    private var tts: TextToSpeech? = TextToSpeech(context, this)
+    private var ttsInitialized = false
+
     private val scope = CoroutineScope(Dispatchers.Default)
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            tts?.language = Locale.getDefault()
+            ttsInitialized = true
+        }
+    }
+
+    fun speak(text: String) {
+        if (ttsInitialized) {
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+    }
+
+    fun release() {
+        tts?.stop()
+        tts?.shutdown()
+        tts = null
+    }
 
     /**
      * Plays a pure sine wave tone asynchronously without external file dependencies.

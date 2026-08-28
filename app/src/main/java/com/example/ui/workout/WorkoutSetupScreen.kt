@@ -34,6 +34,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -58,11 +59,13 @@ import java.util.Locale
 fun WorkoutSetupScreen(
     viewModel: WorkoutViewModel,
     onNavigateToActiveWorkout: () -> Unit,
+    onNavigateToLibrary: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val setupState by viewModel.setupState.collectAsStateWithLifecycle()
     val activeState by viewModel.activeWorkoutState.collectAsStateWithLifecycle()
     val history by viewModel.workoutHistory.collectAsStateWithLifecycle()
+    val todayPlan by viewModel.todayWorkoutPlan.collectAsStateWithLifecycle()
 
     LazyColumn(
         modifier = modifier
@@ -75,19 +78,63 @@ fun WorkoutSetupScreen(
         item {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Interval Timer",
+                text = "Training Center",
                 style = MaterialTheme.typography.displaySmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.5).sp
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = (-1).sp
                 ),
                 color = MaterialTheme.colorScheme.onBackground
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Set your high-intensity work and rest intervals.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        }
+
+        // Today's Plan Hero Card
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable { 
+                        if (todayPlan != null && !todayPlan!!.isRestDay) {
+                             viewModel.startTodayPlan()
+                             onNavigateToActiveWorkout()
+                        }
+                    },
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                )
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = "TODAY'S SCHEDULE",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = todayPlan?.let { if (it.isRestDay) "REST DAY" else it.planName } ?: "NO PLAN SET",
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    
+                    if (todayPlan != null && !todayPlan!!.isRestDay) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                viewModel.startTodayPlan()
+                                onNavigateToActiveWorkout()
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimaryContainer, contentColor = MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            Text("START PLANNED SESSION", fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Use a quick interval below to stay active!", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
         }
 
         // Workout Presets Selector
@@ -341,42 +388,52 @@ fun WorkoutSetupScreen(
         // Start Workout Button
         item {
             val isAlreadyRunning = activeState.isRunning
-            Button(
-                onClick = {
-                    if (isAlreadyRunning) {
-                        onNavigateToActiveWorkout()
-                    } else {
-                        viewModel.startWorkout()
-                        onNavigateToActiveWorkout()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(58.dp)
-                    .testTag("start_workout_action_button"),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        if (isAlreadyRunning) {
+                            onNavigateToActiveWorkout()
+                        } else {
+                            viewModel.startWorkout()
+                            onNavigateToActiveWorkout()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(58.dp)
+                        .testTag("start_workout_action_button"),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isAlreadyRunning) "CONTINUE ACTIVE WORKOUT" else "START WORKOUT",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
                         )
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isAlreadyRunning) "CONTINUE ACTIVE WORKOUT" else "START WORKOUT",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        )
+                    }
+                }
+
+                OutlinedButton(
+                    onClick = onNavigateToLibrary,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("VIEW EXERCISE LIBRARY")
                 }
             }
         }

@@ -47,7 +47,8 @@ data class UserSettings(
     val moveDailyTarget: Int = 8,
 
     // Appearance
-    val themeMode: ThemeMode = ThemeMode.DARK
+    val themeMode: ThemeMode = ThemeMode.DARK,
+    val dynamicColorEnabled: Boolean = true
 )
 
 class UserPreferencesRepository(private val context: Context) {
@@ -72,6 +73,7 @@ class UserPreferencesRepository(private val context: Context) {
         val MOVE_DAILY_TARGET = intPreferencesKey("move_daily_target")
 
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     }
 
     val userSettingsFlow: Flow<UserSettings> = context.dataStore.data.map { prefs ->
@@ -97,7 +99,8 @@ class UserPreferencesRepository(private val context: Context) {
                 ThemeMode.LIGHT.name -> ThemeMode.LIGHT
                 ThemeMode.SYSTEM.name -> ThemeMode.SYSTEM
                 else -> ThemeMode.DARK
-            }
+            },
+            dynamicColorEnabled = prefs[PreferencesKeys.DYNAMIC_COLOR] ?: true
         )
     }
 
@@ -133,6 +136,7 @@ class UserPreferencesRepository(private val context: Context) {
             prefs[PreferencesKeys.WATER_AMOUNT_PER_DRINK] = settings.waterAmountPerDrinkMl
             prefs[PreferencesKeys.MOVE_DAILY_TARGET] = settings.moveDailyTarget
             prefs[PreferencesKeys.THEME_MODE] = settings.themeMode.name
+            prefs[PreferencesKeys.DYNAMIC_COLOR] = settings.dynamicColorEnabled
         }
     }
 
@@ -191,6 +195,12 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.THEME_MODE] = mode.name
+        }
+    }
+
+    suspend fun setDynamicColor(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.DYNAMIC_COLOR] = enabled
         }
     }
 

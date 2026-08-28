@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
 
     <application
         android:name=".PulseBreakApp"
@@ -42,6 +44,12 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Interval workout countdown timer with audio and haptic cues" />
         </service>
+
+        <service
+            android:name=".service.StepTrackerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="health" />
 
         <!-- Reminder Alarms Broadcast Receiver -->
         <receiver

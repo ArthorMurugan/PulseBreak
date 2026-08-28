@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.ui.navigation.AppNavigation
 import com.example.ui.navigation.Screen
@@ -24,25 +26,43 @@ class MainActivity : ComponentActivity() {
 
     private val requestNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { _ ->
-        // Permission granted or denied handled gracefully
+    ) {
+        checkActivityRecognitionPermission()
+    }
+
+    private val requestActivityRecognitionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startStepTracker()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        checkNotificationPermission()
-
         val navigateToWorkout = intent?.getBooleanExtra("navigate_to_workout", false) ?: false
+        val preferencesRepository = (application as PulseBreakApp).preferencesRepository
 
         setContent {
-            PulseBreakTheme {
+            val settings by preferencesRepository.userSettingsFlow.collectAsStateWithLifecycle(
+                initialValue = com.example.data.preferences.UserSettings()
+            )
+
+            PulseBreakTheme(
+                themeMode = settings.themeMode,
+                dynamicColor = settings.dynamicColorEnabled
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+
+                    LaunchedEffect(Unit) {
+                        checkNotificationPermission()
+                    }
 
                     LaunchedEffect(intent) {
                         if (navigateToWorkout) {
@@ -76,7 +96,37 @@ class MainActivity : ComponentActivity() {
 
             if (!hasPermission) {
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                checkActivityRecognitionPermission()
             }
+        } else {
+            checkActivityRecognitionPermission()
+        }
+    }
+
+    private fun checkActivityRecognitionPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) {
+                requestActivityRecognitionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            } else {
+                startStepTracker()
+            }
+        } else {
+            startStepTracker()
+        }
+    }
+
+    private fun startStepTracker() {
+        val intent = Intent(this, com.example.service.StepTrackerService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
     }
 }

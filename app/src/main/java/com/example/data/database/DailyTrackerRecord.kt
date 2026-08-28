@@ -11,5 +11,7 @@ data class DailyTrackerRecord(
     val waterTargetCount: Int = 8,
     val moveBreaksCount: Int = 0,
     val moveTargetCount: Int = 8,
-    val workoutMinutes: Int = 0
+    val workoutMinutes: Int = 0,
+    val stepCount: Int = 0,
+    val stepTargetCount: Int = 6000
 )

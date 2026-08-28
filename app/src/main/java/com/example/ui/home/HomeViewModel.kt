@@ -9,6 +9,7 @@ import com.example.data.preferences.UserSettings
 import com.example.domain.model.ReminderConfig
 import com.example.domain.model.ReminderType
 import com.example.domain.model.WorkoutConfig
+import com.example.domain.model.WorkoutPlan
 import com.example.domain.model.WorkoutState
 import com.example.service.ReminderScheduler
 import com.example.service.WorkoutForegroundService
@@ -34,7 +35,9 @@ data class HomeUiState(
     val userSettings: UserSettings = UserSettings(),
     val activeWorkoutState: WorkoutState = WorkoutState(),
     val nextReminder: NextReminderInfo? = null,
-    val selectedWorkoutPreset: WorkoutConfig = WorkoutConfig.PRESET_30_15
+    val selectedWorkoutPreset: WorkoutConfig = WorkoutConfig.PRESET_30_15,
+    val weeklyMinutes: List<Int> = List(7) { 0 },
+    val todayWorkoutPlan: WorkoutPlan? = null
 )
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,9 +54,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         preferencesRepository.userSettingsFlow,
         preferencesRepository.remindersFlow,
         WorkoutForegroundService.activeWorkoutState,
-        _selectedPreset
-    ) { dailyRecord, settings, reminders, workoutState, preset ->
+        _selectedPreset,
+        repository.getDailyTrackers(getLast7DayKeys()),
+        repository.getAllWorkoutPlans()
+    ) { args: Array<Any?> ->
+        val dailyRecord = args[0] as? DailyTrackerRecord
+        val settings = args[1] as UserSettings
+        val reminders = args[2] as List<ReminderConfig>
+        val workoutState = args[3] as WorkoutState
+        val preset = args[4] as WorkoutConfig
+        val weeklyRecords = args[5] as List<DailyTrackerRecord>
+        val workoutPlans = args[6] as List<WorkoutPlan>
+
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        
         val greeting = when (hour) {
             in 5..11 -> "Good morning"
             in 12..16 -> "Good afternoon"
@@ -62,6 +77,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val nextReminderInfo = calculateNextReminder(reminders)
+        
+        val weeklyMinsList = getLast7DayKeys().map { key ->
+            weeklyRecords.find { it.dateKey == key }?.workoutMinutes ?: 0
+        }
+
+        val todayPlan = workoutPlans.find { it.dayOfWeek == dayOfWeek }
 
         HomeUiState(
             greeting = greeting,
@@ -70,13 +91,24 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             userSettings = settings,
             activeWorkoutState = workoutState,
             nextReminder = nextReminderInfo,
-            selectedWorkoutPreset = preset
+            selectedWorkoutPreset = preset,
+            weeklyMinutes = weeklyMinsList,
+            todayWorkoutPlan = todayPlan
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = HomeUiState()
     )
+
+    private fun getLast7DayKeys(): List<String> {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        return (0..6).reversed().map { offset ->
+            val cal = Calendar.getInstance()
+            cal.add(Calendar.DAY_OF_YEAR, -offset)
+            sdf.format(cal.time)
+        }
+    }
 
     fun selectPreset(config: WorkoutConfig) {
         _selectedPreset.value = config
@@ -97,8 +129,34 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startQuickWorkout() {
-        val config = _selectedPreset.value
-        WorkoutForegroundService.start(getApplication(), config)
+        val todayPlan = uiState.value.todayWorkoutPlan
+        val config = if (todayPlan != null && !todayPlan.isRestDay) {
+            val planned = try {
+                val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+                val type = com.squareup.moshi.Types.newParameterizedType(List::class.java, com.example.domain.model.PlannedExercise::class.java)
+                moshi.adapter<List<com.example.domain.model.PlannedExercise>>(type).fromJson(todayPlan.plannedExercisesJson) ?: emptyList()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            
+            WorkoutConfig(
+                id = "planned_today",
+                name = todayPlan.planName,
+                workDurationSec = todayPlan.defaultWorkSec,
+                restDurationSec = todayPlan.defaultRestSec,
+                totalRounds = todayPlan.defaultRounds,
+                plannedExercises = planned
+            )
+        } else {
+            _selectedPreset.value
+        }
+        
+        viewModelScope.launch {
+            WorkoutForegroundService.start(
+                getApplication(),
+                config.copy(plannedExercises = repository.enrichPlannedExercises(config.plannedExercises))
+            )
+        }
     }
 
     private fun calculateNextReminder(reminders: List<ReminderConfig>): NextReminderInfo? {

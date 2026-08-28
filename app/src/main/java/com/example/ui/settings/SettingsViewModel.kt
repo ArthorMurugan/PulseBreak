@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.PulseBreakApp
+import com.example.data.preferences.ThemeMode
 import com.example.data.preferences.UserSettings
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val current = userSettings.value
             val updated = transform(current)
             preferencesRepository.saveUserSettings(updated)
+        }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            preferencesRepository.setThemeMode(mode)
+        }
+    }
+
+    fun setDynamicColor(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setDynamicColor(enabled)
         }
     }
 

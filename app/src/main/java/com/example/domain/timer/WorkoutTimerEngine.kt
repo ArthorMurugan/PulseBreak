@@ -24,8 +24,10 @@ class WorkoutTimerEngine(
 
     fun startWorkout(config: WorkoutConfig) {
         timerJob?.cancel()
+        
+        val initialExercise = config.plannedExercises.firstOrNull()
         val initialPhase = WorkoutPhase.WORK
-        val initialRemaining = config.workDurationSec
+        val initialRemaining = initialExercise?.workDurationSec ?: config.workDurationSec
 
         _workoutState.value = WorkoutState(
             phase = initialPhase,
@@ -36,7 +38,11 @@ class WorkoutTimerEngine(
             isPaused = false,
             isRunning = true,
             totalElapsedSeconds = 0,
-            config = config
+            config = config,
+            currentExercise = initialExercise,
+            currentSet = 1,
+            totalSets = initialExercise?.sets ?: 1,
+            reps = initialExercise?.reps ?: 0
         )
 
         // Cue initial work alert
@@ -44,6 +50,7 @@ class WorkoutTimerEngine(
             beepSound = config.beepSound,
             vibration = config.vibrationEnabled
         )
+        audioHaptic?.speak(initialExercise?.name ?: "Work")
 
         startTimerLoop()
     }
@@ -97,6 +104,11 @@ class WorkoutTimerEngine(
         )
     }
 
+    fun release() {
+        timerJob?.cancel()
+        audioHaptic?.release()
+    }
+
     private fun startTimerLoop() {
         timerJob = scope.launch {
             while (true) {
@@ -132,24 +144,102 @@ class WorkoutTimerEngine(
 
     private fun handlePhaseTransition(current: WorkoutState, totalElapsed: Int) {
         val config = current.config
+        val plannedList = config.plannedExercises
+
+        if (plannedList.isEmpty()) {
+            handleLegacyPhaseTransition(current, totalElapsed)
+            return
+        }
+
+        val currentIndex = plannedList.indexOf(current.currentExercise)
+        val currentEx = current.currentExercise
+
+        when (current.phase) {
+            WorkoutPhase.WORK -> {
+                // Switch to REST (if there's more sets or more exercises)
+                val isLastSet = current.currentSet >= (currentEx?.sets ?: 1)
+                val isLastExercise = currentIndex >= plannedList.size - 1
+                val isCardioRhythm = plannedList.all { it.exerciseId.startsWith("cardio_") }
+
+                if (isLastSet && isLastExercise && (!isCardioRhythm || current.currentRound >= current.totalRounds)) {
+                    completeWorkout(config, totalElapsed)
+                } else {
+                    val nextDuration = currentEx?.restDurationSec ?: 15
+                    _workoutState.value = current.copy(
+                        phase = WorkoutPhase.REST,
+                        secondsRemaining = nextDuration,
+                        totalPhaseSeconds = nextDuration,
+                        totalElapsedSeconds = totalElapsed
+                    )
+                    audioHaptic?.playRestIntervalAlert(beepSound = config.beepSound, vibration = config.vibrationEnabled)
+                    audioHaptic?.speak("Rest")
+                }
+            }
+
+            WorkoutPhase.REST -> {
+                val isLastSet = current.currentSet >= (currentEx?.sets ?: 1)
+                val isCardioRhythm = plannedList.all { it.exerciseId.startsWith("cardio_") }
+                
+                if (isLastSet) {
+                    // Next exercise
+                    val nextEx = plannedList.getOrNull(currentIndex + 1) ?: if (isCardioRhythm) plannedList.firstOrNull() else null
+                    if (nextEx != null) {
+                        _workoutState.value = current.copy(
+                            phase = WorkoutPhase.WORK,
+                            currentRound = if (isCardioRhythm && currentIndex >= plannedList.size - 1) current.currentRound + 1 else current.currentRound,
+                            currentExercise = nextEx,
+                            currentSet = 1,
+                            totalSets = nextEx.sets,
+                            reps = nextEx.reps,
+                            secondsRemaining = nextEx.workDurationSec,
+                            totalPhaseSeconds = nextEx.workDurationSec,
+                            totalElapsedSeconds = totalElapsed
+                        )
+                        audioHaptic?.playWorkIntervalAlert(beepSound = config.beepSound, vibration = config.vibrationEnabled)
+                        audioHaptic?.speak(nextEx.name)
+                    } else {
+                        completeWorkout(config, totalElapsed)
+                    }
+                } else {
+                    // Next set of current exercise
+                    val nextSet = current.currentSet + 1
+                    val nextDuration = currentEx?.workDurationSec ?: 30
+                    _workoutState.value = current.copy(
+                        phase = WorkoutPhase.WORK,
+                        currentSet = nextSet,
+                        secondsRemaining = nextDuration,
+                        totalPhaseSeconds = nextDuration,
+                        totalElapsedSeconds = totalElapsed
+                    )
+                    audioHaptic?.playWorkIntervalAlert(beepSound = config.beepSound, vibration = config.vibrationEnabled)
+                    audioHaptic?.speak("Set $nextSet")
+                }
+            }
+            else -> {}
+        }
+    }
+
+    private fun completeWorkout(config: WorkoutConfig, totalElapsed: Int) {
+        _workoutState.value = _workoutState.value.copy(
+            phase = WorkoutPhase.FINISHED,
+            secondsRemaining = 0,
+            totalPhaseSeconds = 0,
+            isRunning = false,
+            isPaused = false,
+            totalElapsedSeconds = totalElapsed
+        )
+        audioHaptic?.playCompletionFanfare(beepSound = config.beepSound, vibration = config.vibrationEnabled)
+        audioHaptic?.speak("Workout Completed")
+        onWorkoutCompleted?.invoke(config, totalElapsed)
+    }
+
+    private fun handleLegacyPhaseTransition(current: WorkoutState, totalElapsed: Int) {
+        val config = current.config
 
         when (current.phase) {
             WorkoutPhase.WORK -> {
                 if (current.currentRound >= current.totalRounds) {
-                    // Final work interval finished! Complete the workout
-                    _workoutState.value = current.copy(
-                        phase = WorkoutPhase.FINISHED,
-                        secondsRemaining = 0,
-                        totalPhaseSeconds = 0,
-                        isRunning = false,
-                        isPaused = false,
-                        totalElapsedSeconds = totalElapsed
-                    )
-                    audioHaptic?.playCompletionFanfare(
-                        beepSound = config.beepSound,
-                        vibration = config.vibrationEnabled
-                    )
-                    onWorkoutCompleted?.invoke(config, totalElapsed)
+                    completeWorkout(config, totalElapsed)
                 } else {
                     // Switch to REST
                     val nextDuration = config.restDurationSec
@@ -163,6 +253,7 @@ class WorkoutTimerEngine(
                         beepSound = config.beepSound,
                         vibration = config.vibrationEnabled
                     )
+                    audioHaptic?.speak("Rest")
                 }
             }
 
@@ -181,11 +272,10 @@ class WorkoutTimerEngine(
                     beepSound = config.beepSound,
                     vibration = config.vibrationEnabled
                 )
+                audioHaptic?.speak("Work")
             }
 
-            else -> {
-                // No-op
-            }
+            else -> {}
         }
     }
 }

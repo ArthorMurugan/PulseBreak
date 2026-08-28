@@ -4,10 +4,19 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.domain.model.WorkoutPlan
+import com.example.domain.model.Exercise
 
 @Database(
-    entities = [WorkoutRecord::class, DailyTrackerRecord::class],
-    version = 1,
+    entities = [
+        WorkoutRecord::class, 
+        DailyTrackerRecord::class, 
+        NutritionRecord::class, 
+        WeightRecord::class, 
+        WorkoutPlan::class,
+        Exercise::class
+    ],
+    version = 5,
     exportSchema = false
 )
 abstract class PulseBreakDatabase : RoomDatabase() {
@@ -23,7 +32,9 @@ abstract class PulseBreakDatabase : RoomDatabase() {
                                 context.applicationContext,
                                 PulseBreakDatabase::class.java,
                                 "pulsebreak_database"
-                            ).fallbackToDestructiveMigration(false).build()
+                            )
+                            .fallbackToDestructiveMigration(true)
+                            .build()
                 INSTANCE = instance
                 instance
             }

@@ -34,6 +34,12 @@ class PulseBreakApp : Application() {
 
         // Initialize scheduled reminders on first launch or startup
         CoroutineScope(Dispatchers.IO).launch {
+            // Seed Exercises if empty using the local assets
+            val count = database.pulseBreakDao().getExerciseCount()
+            if (count == 0) {
+                com.example.data.database.ExerciseSeeder.seedExercises(this@PulseBreakApp, database.pulseBreakDao())
+            }
+
             val reminders = preferencesRepository.remindersFlow.first()
             for (reminder in reminders) {
                 if (reminder.isEnabled) {

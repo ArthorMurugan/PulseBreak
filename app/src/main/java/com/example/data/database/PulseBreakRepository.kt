@@ -62,6 +62,10 @@ class PulseBreakRepository(private val dao: PulseBreakDao) {
         return dao.getDailyRecordFlow(dateKey)
     }
 
+    fun getDailyTrackers(dateKeys: List<String>): Flow<List<DailyTrackerRecord>> {
+        return dao.getDailyRecords(dateKeys)
+    }
+
     suspend fun getOrCreateDailyTracker(dateKey: String = getTodayKey()): DailyTrackerRecord {
         val existing = dao.getDailyRecord(dateKey)
         if (existing != null) return existing
@@ -101,6 +105,15 @@ class PulseBreakRepository(private val dao: PulseBreakDao) {
         return newCount
     }
 
+    suspend fun updateSteps(sessionSteps: Int, dateKey: String = getTodayKey()) {
+        val current = getOrCreateDailyTracker(dateKey)
+        // Note: Simple session-based increment for example purposes. 
+        // In a real app, you'd handle initial offsets more robustly across reboots.
+        dao.insertOrUpdateDailyRecord(
+            current.copy(stepCount = current.stepCount + sessionSteps)
+        )
+    }
+
     suspend fun deleteWorkout(id: Long) {
         dao.deleteWorkoutRecord(id)
     }
@@ -108,5 +121,52 @@ class PulseBreakRepository(private val dao: PulseBreakDao) {
     suspend fun clearAllHistory() {
         dao.clearAllWorkoutRecords()
         dao.clearAllDailyRecords()
+    }
+
+    fun getAllWorkoutPlans(): Flow<List<com.example.domain.model.WorkoutPlan>> = dao.getAllWorkoutPlans()
+
+    suspend fun saveWorkoutPlan(plan: com.example.domain.model.WorkoutPlan) {
+        dao.insertWorkoutPlan(plan)
+    }
+
+    fun getNutritionRecords(dateKey: String = getTodayKey()): Flow<List<NutritionRecord>> = 
+        dao.getNutritionRecords(dateKey)
+
+    suspend fun addNutritionRecord(record: NutritionRecord) = dao.insertNutritionRecord(record)
+
+    suspend fun deleteNutritionRecord(id: Long) = dao.deleteNutritionRecord(id)
+
+    fun getAllWeightRecords(): Flow<List<WeightRecord>> = dao.getAllWeightRecords()
+
+    suspend fun addWeightRecord(weightKg: Float, dateKey: String = getTodayKey()) {
+        dao.insertWeightRecord(WeightRecord(dateKey = dateKey, weightKg = weightKg))
+    }
+
+    // Exercise Library
+    fun getAllExercises(): Flow<List<com.example.domain.model.Exercise>> = dao.getAllExercises()
+
+    fun searchExercises(query: String, limit: Int = 100): Flow<List<com.example.domain.model.Exercise>> {
+        val dbQuery = "%${query.trim()}%"
+        return dao.searchExercises(dbQuery, limit)
+    }
+
+    suspend fun insertExercises(exercises: List<com.example.domain.model.Exercise>) {
+        dao.insertExercises(exercises)
+    }
+
+    suspend fun getExercisesByIds(ids: List<String>): List<com.example.domain.model.Exercise> = 
+        dao.getExercisesByIds(ids)
+
+    suspend fun enrichPlannedExercises(
+        plannedExercises: List<com.example.domain.model.PlannedExercise>
+    ): List<com.example.domain.model.PlannedExercise> {
+        if (plannedExercises.isEmpty()) return plannedExercises
+        val exercisesById = getExercisesByIds(plannedExercises.map { it.exerciseId }).associateBy { it.id }
+        return plannedExercises.map { planned ->
+            val exercise = exercisesById[planned.exerciseId]
+            val gifUrl = planned.gifUrl.ifBlank { exercise?.gifUrl.orEmpty() }
+            val bodyPart = planned.bodyPart.ifBlank { exercise?.bodyPart.orEmpty() }
+            planned.copy(gifUrl = gifUrl, bodyPart = bodyPart)
+        }
     }
 }

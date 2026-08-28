@@ -1,5 +1,6 @@
 package com.example.ui.settings
 
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -45,8 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.data.preferences.ThemeMode
 import com.example.ui.components.NumberStepper
-import com.example.ui.theme.WaterBluePrimary
 
 @Composable
 fun SettingsScreen(
@@ -138,7 +142,7 @@ fun SettingsScreen(
                 step = 1,
                 minValue = 1,
                 maxValue = 25,
-                accentColor = WaterBluePrimary,
+                accentColor = MaterialTheme.colorScheme.tertiary,
                 onValueChange = { target ->
                     viewModel.updateSettings { it.copy(waterDailyTarget = target) }
                 }
@@ -153,11 +157,88 @@ fun SettingsScreen(
                 step = 1,
                 minValue = 1,
                 maxValue = 20,
-                accentColor = MaterialTheme.colorScheme.primary,
+                accentColor = MaterialTheme.colorScheme.secondary,
                 onValueChange = { target ->
                     viewModel.updateSettings { it.copy(moveDailyTarget = target) }
                 }
             )
+        }
+
+        // Appearance Section
+        item {
+            Text(
+                text = "APPEARANCE",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Theme Mode",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        ThemeMode.entries.forEachIndexed { index, mode ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = ThemeMode.entries.size),
+                                onClick = { viewModel.setThemeMode(mode) },
+                                selected = settings.themeMode == mode
+                            ) {
+                                Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })
+                            }
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Dynamic Color",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Use wallpaper colors (Android 12+)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = settings.dynamicColorEnabled,
+                                onCheckedChange = { enabled ->
+                                    viewModel.setDynamicColor(enabled)
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Workout Defaults Section
@@ -169,6 +250,51 @@ fun SettingsScreen(
                     letterSpacing = 1.2.sp
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        item {
+            NumberStepper(
+                label = "Default Work Duration",
+                value = settings.defaultWorkSec,
+                unit = "sec",
+                step = 5,
+                minValue = 5,
+                maxValue = 300,
+                accentColor = MaterialTheme.colorScheme.primary,
+                onValueChange = { target ->
+                    viewModel.updateSettings { it.copy(defaultWorkSec = target) }
+                }
+            )
+        }
+
+        item {
+            NumberStepper(
+                label = "Default Rest Duration",
+                value = settings.defaultRestSec,
+                unit = "sec",
+                step = 5,
+                minValue = 0,
+                maxValue = 180,
+                accentColor = MaterialTheme.colorScheme.secondary,
+                onValueChange = { target ->
+                    viewModel.updateSettings { it.copy(defaultRestSec = target) }
+                }
+            )
+        }
+
+        item {
+            NumberStepper(
+                label = "Default Rounds",
+                value = settings.defaultRounds,
+                unit = "rounds",
+                step = 1,
+                minValue = 1,
+                maxValue = 50,
+                accentColor = MaterialTheme.colorScheme.primary,
+                onValueChange = { target ->
+                    viewModel.updateSettings { it.copy(defaultRounds = target) }
+                }
             )
         }
 

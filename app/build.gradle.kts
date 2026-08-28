@@ -57,6 +57,13 @@ android {
     compose = true
     buildConfig = true
   }
+
+  sourceSets {
+    getByName("main") {
+      assets.srcDirs("src/main/assets", "../assets")
+    }
+  }
+
   testOptions { unitTests { isIncludeAndroidResources = true } }
   dependenciesInfo {
     includeInApk = false
@@ -97,7 +104,8 @@ dependencies {
   implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
-  // implementation(libs.coil.compose)
+  implementation(libs.coil.compose)
+  implementation(libs.coil.gif)
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
   // Uncomment to use Firestore:

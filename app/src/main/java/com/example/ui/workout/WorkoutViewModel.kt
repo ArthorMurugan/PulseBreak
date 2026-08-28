@@ -6,13 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.PulseBreakApp
 import com.example.data.database.WorkoutRecord
 import com.example.domain.model.WorkoutConfig
+import com.example.domain.model.WorkoutPlan
 import com.example.domain.model.WorkoutState
 import com.example.service.WorkoutForegroundService
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class WorkoutSetupState(
@@ -43,6 +43,13 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    val todayWorkoutPlan: StateFlow<WorkoutPlan?> = repository.getAllWorkoutPlans()
+        .map { plans ->
+            val dayOfWeek = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)
+            plans.find { it.dayOfWeek == dayOfWeek }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
         // Load default settings if available
@@ -105,6 +112,39 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateCountdownWarning(sec: Int) {
         _setupState.value = _setupState.value.copy(countdownWarningSec = sec)
+    }
+
+    fun startTodayPlan() {
+        val plan = todayWorkoutPlan.value
+        if (plan == null || plan.isRestDay) {
+            startWorkout()
+            return
+        }
+
+        val planned = try {
+            val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+            val type = Types.newParameterizedType(List::class.java, com.example.domain.model.PlannedExercise::class.java)
+            moshi.adapter<List<com.example.domain.model.PlannedExercise>>(type).fromJson(plan.plannedExercisesJson) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+
+        viewModelScope.launch {
+            val enrichedPlanned = repository.enrichPlannedExercises(planned)
+            val config = WorkoutConfig(
+                id = "planned_today",
+                name = plan.planName,
+                workDurationSec = plan.defaultWorkSec,
+                restDurationSec = plan.defaultRestSec,
+                totalRounds = plan.defaultRounds,
+                plannedExercises = enrichedPlanned,
+                countdownSound = _setupState.value.countdownSound,
+                beepSound = _setupState.value.beepSound,
+                vibrationEnabled = _setupState.value.vibrationEnabled,
+                countdownWarningSec = _setupState.value.countdownWarningSec
+            )
+            WorkoutForegroundService.start(getApplication(), config)
+        }
     }
 
     fun startWorkout() {

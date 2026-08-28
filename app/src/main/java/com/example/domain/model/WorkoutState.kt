@@ -17,7 +17,11 @@ data class WorkoutState(
     val isPaused: Boolean = false,
     val isRunning: Boolean = false,
     val totalElapsedSeconds: Int = 0,
-    val config: WorkoutConfig = WorkoutConfig.PRESET_30_15
+    val config: WorkoutConfig = WorkoutConfig.PRESET_30_15,
+    val currentExercise: PlannedExercise? = null,
+    val currentSet: Int = 1,
+    val totalSets: Int = 1,
+    val reps: Int = 0
 ) {
     val progress: Float
         get() = if (totalPhaseSeconds > 0) {
@@ -34,9 +38,19 @@ data class WorkoutState(
         }
 
     val nextPhaseDurationSec: Int
-        get() = when (nextPhase) {
-            WorkoutPhase.WORK -> config.workDurationSec
-            WorkoutPhase.REST -> config.restDurationSec
-            else -> 0
+        get() {
+            val plannedExercises = config.plannedExercises
+            val isCardioRhythm = plannedExercises.isNotEmpty() && plannedExercises.all {
+                it.exerciseId.startsWith("cardio_")
+            }
+            val currentIndex = plannedExercises.indexOf(currentExercise)
+            val nextExercise = plannedExercises.getOrNull(currentIndex + 1)
+                ?: if (isCardioRhythm) plannedExercises.firstOrNull() else null
+
+            return when (nextPhase) {
+                WorkoutPhase.WORK -> nextExercise?.workDurationSec ?: currentExercise?.workDurationSec ?: config.workDurationSec
+                WorkoutPhase.REST -> currentExercise?.restDurationSec ?: config.restDurationSec
+                else -> 0
+            }
         }
 }

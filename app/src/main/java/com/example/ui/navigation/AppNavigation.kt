@@ -3,14 +3,24 @@ package com.example.ui.navigation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.StackedLineChart
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.FitnessCenter
+import androidx.compose.material.icons.outlined.FlashOn
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.StackedLineChart
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -50,10 +60,15 @@ sealed class Screen(
     val unselectedIcon: ImageVector
 ) {
     object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
-    object Workout : Screen("workout", "Workout", Icons.Filled.FitnessCenter, Icons.Outlined.FitnessCenter)
-    object Reminders : Screen("reminders", "Reminders", Icons.Filled.Notifications, Icons.Outlined.Notifications)
-    object Settings : Screen("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
+    object Planner : Screen("planner", "Planner", Icons.Filled.DateRange, Icons.Outlined.DateRange)
+    object Workout : Screen("workout", "Quick", Icons.Filled.FlashOn, Icons.Outlined.FlashOn)
+    object History : Screen("history", "History", Icons.Filled.StackedLineChart, Icons.Outlined.StackedLineChart)
+    object Settings : Screen("settings", "Settings", Icons.Filled.Tune, Icons.Outlined.Tune)
     object ActiveWorkout : Screen("active_workout", "Active", Icons.Filled.FitnessCenter, Icons.Outlined.FitnessCenter)
+    object Reminders : Screen("reminders", "Alerts", Icons.Filled.Notifications, Icons.Outlined.Notifications)
+    object Nutrition : Screen("nutrition", "Nutrition", Icons.Filled.Notifications, Icons.Outlined.Notifications)
+    object Progress : Screen("progress", "Progress", Icons.Filled.History, Icons.Outlined.History)
+    object Library : Screen("library", "Library", Icons.Filled.History, Icons.Outlined.History)
 }
 
 @Composable
@@ -66,8 +81,9 @@ fun AppNavigation(
 
     val bottomNavItems = listOf(
         Screen.Home,
+        Screen.Planner,
         Screen.Workout,
-        Screen.Reminders,
+        Screen.History,
         Screen.Settings
     )
 
@@ -85,7 +101,7 @@ fun AppNavigation(
             if (showBottomBar) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 3.dp,
+                    tonalElevation = 8.dp,
                     modifier = Modifier.testTag("bottom_navigation_bar")
                 ) {
                     bottomNavItems.forEach { screen ->
@@ -117,16 +133,11 @@ fun AppNavigation(
                             ),
                             onClick = {
                                 navController.navigate(screen.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    // on the back stack as users select items
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        // We'll skip saveState/restoreState temporarily to debug
-                                        // if it's causing the "stuck" navigation
+                                    popUpTo(Screen.Home.route) {
+                                        saveState = true
                                     }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
                                     launchSingleTop = true
+                                    restoreState = true
                                 }
                             },
                             modifier = Modifier.testTag("nav_item_${screen.route}")
@@ -158,6 +169,21 @@ fun AppNavigation(
                         navController.navigate(Screen.Reminders.route) {
                             launchSingleTop = true
                         }
+                    },
+                    onNavigateToHistory = {
+                        navController.navigate(Screen.History.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToPlanner = {
+                        navController.navigate(Screen.Planner.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToProgress = {
+                        navController.navigate(Screen.Progress.route) {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -167,6 +193,18 @@ fun AppNavigation(
                     viewModel = workoutViewModel,
                     onNavigateToActiveWorkout = {
                         navController.navigate(Screen.ActiveWorkout.route)
+                    },
+                    onNavigateToLibrary = {
+                        navController.navigate(Screen.Library.route)
+                    }
+                )
+            }
+
+            composable(Screen.History.route) {
+                com.example.ui.workout.HistoryScreen(
+                    viewModel = workoutViewModel,
+                    onNavigateBack = {
+                        navController.popBackStack()
                     }
                 )
             }
@@ -189,6 +227,42 @@ fun AppNavigation(
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     viewModel = settingsViewModel
+                )
+            }
+
+            composable(Screen.Planner.route) {
+                com.example.ui.planner.WeeklyPlannerScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onStartWorkout = {
+                        homeViewModel.startQuickWorkout()
+                        navController.navigate(Screen.ActiveWorkout.route)
+                    }
+                )
+            }
+
+            composable(Screen.Nutrition.route) {
+                com.example.ui.nutrition.NutritionScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Progress.route) {
+                com.example.ui.progress.ProgressScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Library.route) {
+                com.example.ui.library.LibraryScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }
